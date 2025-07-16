@@ -1,0 +1,17 @@
+{
+  "name": "emitter-service",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "ts-node-dev src/index.ts"
+  },
+  "dependencies": {
+    "amqplib": "^0.10.3",
+    "express": "^4"
+  },
+  "devDependencies": {
+    "@types/amqplib": "^0.10.7",
+    "@types/express": "^5.0.3",
+    "ts-node-dev": "^2",
+    "typescript": "^5"
+  }
+}
