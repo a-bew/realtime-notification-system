@@ -5,7 +5,7 @@
     "dev": "ts-node-dev src/index.ts"
   },
   "dependencies": {
-    "amqplib": "^0.10.3",
+    "amqplib": "^0.10.5",
     "express": "^4"
   },
   "devDependencies": {

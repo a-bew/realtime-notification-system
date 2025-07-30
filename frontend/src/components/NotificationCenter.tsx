@@ -3,6 +3,8 @@ import React from 'react';
 import { useNotificationSocket } from '../hooks/useNotificationSocket';
 
 export const NotificationCenter: React.FC = () => {
+
+  // const userId = '123'; // could come from auth/user context
   const { notifications } = useNotificationSocket();
 
   return (

@@ -10,11 +10,24 @@ export function handleWsConnection(ws: WebSocket, clients: Set<WebSocket>) {
   });
 }
 
-export function broadcastMessage(clients: Set<WebSocket>, message: any) {
-  const payload = JSON.stringify(message);
-  clients.forEach((client) => {
+
+export function broadcastMessageToUser(
+  clientsByUser: Map<string, Set<WebSocket>>,
+  userId: string,
+  message: any
+) {
+  const userClients = clientsByUser.get(userId);
+  if (!userClients || userClients.size === 0) {
+    console.log(`No clients found for userId: ${userId}`);
+    return;
+  }
+
+  const json = JSON.stringify(message);
+  console.log(`Sending to ${userClients.size} clients for userId: ${userId}`);
+
+  for (const client of userClients) {
     if (client.readyState === WebSocket.OPEN) {
-      client.send(payload);
+      client.send(json);
     }
-  });
+  }
 }

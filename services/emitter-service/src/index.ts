@@ -18,13 +18,18 @@ async function connectRabbit() {
 }
 
 app.post('/api/notify', async (req, res) => {
-  const { title, body } = req.body;
+  const { title, userId, body } = req.body;
 
   if (!title || !body) {
     return res.status(400).json({ error: 'title and body are required' });
   }
 
-  const message = JSON.stringify({ title, body, timestamp: Date.now() });
+  const message = JSON.stringify({
+    title,
+    body,
+    userId, // ✅ Include this
+    timestamp: Date.now()
+  });
   channel.publish(exchange, '', Buffer.from(message));
   console.log('[x] Notification sent:', message);
 
