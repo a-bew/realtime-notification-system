@@ -41,8 +41,8 @@ realtime-notification-system/
 ## 🔐 Auth Flow
 
 - `auth-service` handles:
-  - `POST /register`: email & password → new user
-  - `POST /login`: sets HTTP-only JWT cookie
+  - `POST /api/register`: email & password → new user
+  - `POST /api/login`: sets HTTP-only JWT cookie
 
 - `notification-service` uses this cookie to authenticate WebSocket clients.
 
@@ -52,7 +52,7 @@ realtime-notification-system/
 
 1. Client logs in → cookie is set.
 2. WebSocket connects → JWT is extracted & verified.
-3. Backend triggers `POST /notify` (via `emitter-service`)
+3. Backend triggers `POST /api/notify` (via `emitter-service`)
 4. Emitter decides **routing key** dynamically:
    ```ts
    const routingKey = payload.userId
@@ -150,6 +150,6 @@ docker-compose up --build
 3. WebSocket opens
 4. Send POST to emitter:
    ```bash
-   curl -X POST http://localhost:4002/notify      -H "Content-Type: application/json"      -d '{ "title": "Alert!", "body": "New message", "userId": "123" }'
+   curl -X POST http://localhost:4002/api/notify      -H "Content-Type: application/json"      -d '{ "title": "Alert!", "body": "New message", "userId": "123" }'
    ```
 5. WebSocket client receives it instantly.
