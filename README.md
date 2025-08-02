@@ -41,9 +41,9 @@ realtime-notification-system/
 ## 🔐 Auth Flow
 
 - `auth-service` handles:
-  - `POST /api/auth/register`: email & password → new user
+  - `POST /api/auth/signup`: email & password → new user
   - `POST /api/auth/login`: sets HTTP-only JWT cookie
-  - `GET /api/auth/login`: logout
+  - `GET /api/auth/logout`: logout
 
 - `notification-service` uses this cookie to authenticate WebSocket clients.
 
