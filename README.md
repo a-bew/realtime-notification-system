@@ -41,8 +41,9 @@ realtime-notification-system/
 ## 🔐 Auth Flow
 
 - `auth-service` handles:
-  - `POST /api/register`: email & password → new user
-  - `POST /api/login`: sets HTTP-only JWT cookie
+  - `POST /api/auth/register`: email & password → new user
+  - `POST /api/auth/login`: sets HTTP-only JWT cookie
+  - `GET /api/auth/login`: logout
 
 - `notification-service` uses this cookie to authenticate WebSocket clients.
 
@@ -146,10 +147,44 @@ docker-compose up --build
 ## ✅ Test Scenario
 
 1. Visit frontend → register/login
+```bash
+curl -X POST http://localhost:4000/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "test1234"
+  }'
+```
+
+or if already signed up:
+```bash
+curl -X POST http://localhost:4000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "test1234"
+  }'
+```
+
 2. Client is auto-authenticated via JWT
 3. WebSocket opens
 4. Send POST to emitter:
    ```bash
-   curl -X POST http://localhost:4002/api/notify      -H "Content-Type: application/json"      -d '{ "title": "Alert!", "body": "New message", "userId": "123" }'
+      curl -X POST http://localhost:4002/api/notify      
+      -H "Content-Type: application/json"      
+      -d '{ "title": "Alert!", "body": "New message", "userId": "123", "type": "GENERIC" }'
    ```
+
+   Send a batch from backend:
+   ```bash
+   curl -X POST http://localhost:4002/api/notify \
+   -H "Content-Type: application/json" \
+   -d '{
+      "userIds": ["123", "456"],
+      "title": "Test Broadcast",
+      "body": "Hello multiple users!",
+      "type": "BATCH"
+   }'
+   ```
+
 5. WebSocket client receives it instantly.
