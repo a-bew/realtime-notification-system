@@ -1,99 +1,155 @@
-# realtime-notification-system
+# 🔔 Real-Time Notification System (Microservices + WebSocket + RabbitMQ Topic Exchange)
 
-# 🔔 Real-Time Notification System (Microservices + WebSocket + RabbitMQ)
+## 🧩 Overview
 
-This is a fully-featured real-time notification system using:
+A scalable notification delivery system using:
 
-- **Express + TypeScript** Microservices
-- **RabbitMQ (Fanout Exchange)** for event-driven communication
-- **WebSocket** for cross-browser, real-time notification delivery
-- **MySQL** for persistent storage
-- **Docker Compose** for environment orchestration
-
----
-
-## 📦 Microservices
-
-### 1. `notification-service`
-- Consumes messages from RabbitMQ `fanout` exchange
-- Broadcasts to connected WebSocket clients
-- Stores all notifications to MySQL
-- Supports `userId`-scoped notification delivery
-
-### 2. `emitter-service`
-- Sends messages to RabbitMQ exchange via `/notify` endpoint
-- Payload must include `title`, `body`, and optional `userId`
+- **Microservices in TypeScript**
+- **RabbitMQ (Topic Exchange)** for flexible message routing
+- **WebSocket** for real-time delivery
+- **MySQL** for persistence
+- **JWT-based Authentication**
+- **React Frontend** for interaction
 
 ---
 
-## 🧱 System Architecture
+## 📁 Project Structure
 
-Frontend (React) ⇄ WebSocket ⇄ Notification Service ⇄ RabbitMQ ⇄ Emitter Service
-⇡
-MySQL (Persistent Storage)
-
+```
+realtime-notification-system/
+├── frontend/                  # React-based UI (JWT login + WebSocket)
+├── services/
+│   ├── auth-service/          # User registration & login
+│   │   └── src/
+│   │       └── index.ts
+│   ├── emitter-service/       # Publishes to RabbitMQ topic exchange
+│   │   └── src/
+│   │       ├── index.ts
+│   │       └── rabbitmq.ts
+│   └── notification-service/  # WebSocket + consumer + DB store
+│       └── src/
+│           ├── index.ts
+│           ├── rabbitmq.ts
+│           ├── db.ts
+│           └── services/
+│               └── notificationRepo.ts
+└── docker-compose.yml
+```
 
 ---
 
-## 🧪 Features
+## 🔐 Auth Flow
 
-- [x] Real-time notification delivery over WebSocket
-- [x] Cross-browser updates
-- [x] RabbitMQ Fanout-based pub/sub architecture
-- [x] Message persistence (MySQL)
-- [x] User-based scoped notification (via `userId`)
-- [ ] In-memory pub/sub fallback (optional)
-- [ ] Authenticated WebSocket via JWT (optional)
+- `auth-service` handles:
+  - `POST /register`: email & password → new user
+  - `POST /login`: sets HTTP-only JWT cookie
+
+- `notification-service` uses this cookie to authenticate WebSocket clients.
 
 ---
 
-## 🐳 Docker Setup
+## 🔄 Notification Flow
 
-Ensure Docker is installed, then run:
+1. Client logs in → cookie is set.
+2. WebSocket connects → JWT is extracted & verified.
+3. Backend triggers `POST /notify` (via `emitter-service`)
+4. Emitter decides **routing key** dynamically:
+   ```ts
+   const routingKey = payload.userId
+     ? `notify.user.${payload.userId}`
+     : payload.channel
+     ? `notify.channel.${payload.channel}`
+     : 'notify.broadcast';
+   ```
+5. Publishes to RabbitMQ **topic exchange**.
+6. `notification-service` listens with binding keys like:
+   - `notify.user.*`
+   - `notify.channel.*`
+   - `notify.broadcast`
+7. Matched messages are sent to respective WebSocket clients and saved to MySQL.
+
+---
+
+## ✨ Emitter Service Logic
+
+```ts
+export async function emitNotification(payload: NotificationPayload): Promise<void> {
+    const ch = await connectRabbit();
+    const routingKey = payload.userId
+        ? `notify.user.${payload.userId}`
+        : payload.channel
+        ? `notify.channel.${payload.channel}`
+        : 'notify.broadcast';
+
+    const msg = Buffer.from(JSON.stringify(payload));
+
+    if (payload.userIds?.length) {
+        for (const userId of payload.userIds) {
+            ch.publish(exchange, `notify.user.${userId}`, Buffer.from(JSON.stringify({
+                ...payload,
+                userId,
+            })));
+        }
+    } else {
+        ch.publish(exchange, routingKey, msg, { persistent: true });
+    }
+
+    logger.info(`📬 Sent notification to ${routingKey}`);
+}
+```
+
+---
+
+## 🧪 RabbitMQ Topic Exchange Patterns
+
+| Routing Key             | Meaning                                 |
+|------------------------|------------------------------------------|
+| `notify.user.123`      | Specific user notification               |
+| `notify.channel.admin` | Channel-based (e.g., admin/moderator)    |
+| `notify.broadcast`     | Global/system-wide notification          |
+
+Consumers bind with patterns:
+- `notify.user.*`
+- `notify.channel.*`
+- `notify.*`
+
+---
+
+## 💻 Frontend Flow
+
+- React app:
+  - Login form → submits to `auth-service`
+  - On login, JWT cookie is stored
+  - Establishes WebSocket to `notification-service`
+  - Receives real-time messages
+
+---
+
+## 🐳 Docker Compose
 
 ```bash
 docker-compose up --build
 ```
 
-Default exposed ports:
+### Ports
 
-   - notification-service: http://localhost:4001
+| Service              | Port               |
+|----------------------|--------------------|
+| `auth-service`       | `4000`             |
+| `notification-service` | `4001`          |
+| `emitter-service`    | `4002`             |
+| RabbitMQ UI          | `15672` (guest/guest) |
+| MySQL                | `3307`             |
 
-   - emitter-service: http://localhost:4002
+---
 
-   - RabbitMQ Dashboard: http://localhost:15672 (user: guest, pass: guest)
+## ✅ Test Scenario
 
-   - MySQL: localhost:3307
-
-Test Flow
-
- 1. Open multiple tabs at React App, each with a different userId via WebSocket.
-
- 2. Trigger a notification via:
-
- 3. curl -X POST http://localhost:4002/notify \
-    -H "Content-Type: application/json" \
-    -d '{"title":"Hello", "body":"World", "userId":"123"}'
-    Only the client with userId=123 receives it in real time.
-
- 4.  Notification is saved to MySQL.
-
-## Structure
-
- notification-service/
-  ├── src/
-  │   ├── index.ts
-  │   ├── rabbitmq.ts
-  │   ├── services/notificationRepo.ts
-  │   ├── db.ts
-  └── Dockerfile
-
-emitter-service/
-  ├── src/
-  │   ├── index.ts
-  │   └── rabbitmq.ts
-  └── Dockerfile
-
-
-<!-- emitNotification("123", { title: "Hello", body: "User 123 only" });
- -->
+1. Visit frontend → register/login
+2. Client is auto-authenticated via JWT
+3. WebSocket opens
+4. Send POST to emitter:
+   ```bash
+   curl -X POST http://localhost:4002/notify      -H "Content-Type: application/json"      -d '{ "title": "Alert!", "body": "New message", "userId": "123" }'
+   ```
+5. WebSocket client receives it instantly.
