@@ -1,12 +1,16 @@
 // src/components/NotificationCenter.tsx
 import React from 'react';
 import { useNotificationSocket } from '../hooks/useNotificationSocket';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const NotificationCenter: React.FC = () => {
+  const { user } = useAuth();
+
   const { notifications } = useNotificationSocket();
 
   return (
     <div style={{ padding: 16, maxWidth: 400 }}>
+      <h1>Welcome, {user?.name || user?.email}</h1>
       <h2>🔔 Notifications</h2>
       {notifications.length === 0 ? (
         <p>No notifications yet</p>

@@ -1,5 +1,15 @@
 version: '3.8'
 services:
+  auth-service:
+    build: ./services/auth-service
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    depends_on:
+      mysql-notify:
+        condition: service_healthy
+
   mysql-notify:
     image: mysql:8
     container_name: mysql_notify

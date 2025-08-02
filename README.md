@@ -93,3 +93,7 @@ emitter-service/
   │   ├── index.ts
   │   └── rabbitmq.ts
   └── Dockerfile
+
+
+<!-- emitNotification("123", { title: "Hello", body: "User 123 only" });
+ -->

@@ -1,5 +1,5 @@
+import { logger } from '@/utils/logger';
 import mysql from 'mysql2/promise';
-import { logger } from "./logger";
 
 // Create a connection pool
 const pool = mysql.createPool({

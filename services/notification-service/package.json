@@ -2,17 +2,32 @@
   "name": "notification-service",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "ts-node-dev src/index.ts"
+    "dev": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
+    "build": "tsc",
+    "start": "node -r module-alias/register dist/index.js"
+  },
+  "_moduleAliases": {
+    "@": "dist"
   },
   "dependencies": {
     "amqplib": "^0.10.3",
+    "cookie": "^1.0.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
     "express": "^4",
+    "jsonwebtoken": "^9.0.2",
+    "module-alias": "^2.2.3",
     "mysql2": "^3",
+    "tsconfig-paths": "^4.2.0",
     "ws": "^8"
   },
   "devDependencies": {
     "@types/amqplib": "^0.10.7",
+    "@types/cookie": "^0.6.0",
+    "@types/cookie-parser": "^1.4.9",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/ws": "^8.18.1",
     "ts-node-dev": "^2",
     "typescript": "^5"
