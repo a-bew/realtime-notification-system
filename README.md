@@ -147,24 +147,24 @@ docker-compose up --build
 ## ✅ Test Scenario
 
 1. Visit frontend → register/login
-```bash
-curl -X POST http://localhost:4000/api/auth/signup \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "test@example.com",
-    "password": "test1234"
-  }'
-```
+   ```bash
+   curl -X POST http://localhost:4000/api/auth/signup \
+   -H "Content-Type: application/json" \
+   -d '{
+      "email": "test@example.com",
+      "password": "test1234"
+   }'
+   ```
 
-or if already signed up:
-```bash
-curl -X POST http://localhost:4000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "test@example.com",
-    "password": "test1234"
-  }'
-```
+   or if already signed up:
+   ```bash
+   curl -X POST http://localhost:4000/api/auth/login \
+   -H "Content-Type: application/json" \
+   -d '{
+      "email": "test@example.com",
+      "password": "test1234"
+   }'
+   ```
 
 2. Client is auto-authenticated via JWT
 3. WebSocket opens
